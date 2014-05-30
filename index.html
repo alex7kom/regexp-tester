@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>RegExp and XRegExp Tester</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+		<link href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
+		<style>
+			/* Sticky footer styles
+			-------------------------------------------------- */
+
+			html,
+			body {
+				height: 100%;
+				/* The html and body elements cannot have any padding or margin. */
+			}
+
+			/* Wrapper for page content to push down footer */
+			#wrap {
+				min-height: 100%;
+				height: auto !important;
+				height: 100%;
+				/* Negative indent footer by it's height */
+				margin: 0 auto -100px;
+			}
+
+			/* Set the fixed height of the footer here */
+			#push,
+			#footer {
+				height: 100px;
+			}
+
+			/* Lastly, apply responsive CSS fixes as necessary */
+			@media (max-width: 767px) {
+				#footer {
+				  margin-left: -20px;
+				  margin-right: -20px;
+				  padding-left: 20px;
+				  padding-right: 20px;
+				}
+			}
+
+			#result-none {
+				display: block;
+			}
+
+			.result {
+				display: none;
+			}
+
+			hr {
+				-moz-border-bottom-colors: none;
+				-moz-border-image: none;
+				-moz-border-left-colors: none;
+				-moz-border-right-colors: none;
+				-moz-border-top-colors: none;
+				border-color: #EEEEEE -moz-use-text-color #FFFFFF;
+				border-style: solid none;
+				border-width: 1px 0;
+				margin: 18px 0;
+			}
+
+			.checkbox.inline, .radio.inline {
+				margin-left: 10px;
+			}
+
+			#regex_pattern {
+				overflow: hidden;
+				resize: none;
+			}
+
+			#test_data {
+				resize: vertical;
+			}
+		</style>
+	</head>
+	<body>
+    <div id="wrap">
+		<div class="row-fluid">
+			<div class="span12"></div>
+		</div>
+		<div class="row-fluid">
+			<div class="span10 offset1">
+				<h1>RegExp and XRegExp Tester</h1>
+				
+				<textarea style="width: 100%; margin-top: 1%;" rows="1" placeholder="Regular Expression" id="regex_pattern"></textarea>
+
+				<textarea name="" id="test_data" rows="5" style="width: 100%; margin-top: 1%;" placeholder="Test Data"></textarea>
+				<div class="row-fluid">
+					
+					<div class="span7">
+						<h4>Results</h4>
+						<div class="alert alert-error result" id="result-error">
+							<strong>Syntax Error</strong>
+						</div>
+						<div class="alert alert-info result" id="result-none">
+							<strong>No matches</strong>
+						</div>
+						<div class="alert alert-info result" id="result-working">
+							<strong>Working...</strong>
+						</div>
+						<div class="alert alert-success result" id="result-done">
+							<strong>Done</strong>
+						</div>
+						<pre id="results" class="result">
+						</pre>
+					</div>
+					<div class="span4 offset1">
+						<h4>Options</h4>
+						<label class="radio inline">
+							<input type="radio" name="regexp_type" id="regexp_type1" value="" checked>
+							JavaScript RegExp
+						</label>
+						<label class="radio inline">
+							<input type="radio" name="regexp_type" id="regexp_type2" value="">
+							XRegExp
+						</label>
+						<hr>
+						<label class="checkbox inline">
+							<input type="checkbox" value="" id="option-g">
+							g (global search)
+						</label>
+						<label class="checkbox inline">
+							<input type="checkbox" value="" id="option-i">
+							i (case insensitive)
+						</label>
+						
+						<label class="checkbox inline">
+							<input type="checkbox" value="" id="option-m">
+							m (^$ match at line breaks)
+						</label>
+						<label class="checkbox inline" title="XRegExp only">
+							<input type="checkbox" value="" id="option-x" disabled>
+							x (free-spacing and line comments)
+						</label>
+					</div>
+
+				</div>
+			</div>
+		</div>
+		<div id="push"></div>
+    </div>
+    <div id="footer" class="row-fluid">
+      <div class="span10 offset1">
+        <p class="muted credit">
+        	This <strong>RegExp Tester</strong> made by <a href="https://github.com/Alex7Kom">Alex7Kom</a>.<br>
+			See also: <a href="http://xregexp.com/">XRegExp JavaScript Library</a> by Steven Levithan, <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/RegExp#Special_characters_in_regular_expressions">JavaScript RegExp Reference</a> on MDN, <a href="http://regexpal.com/">regexpal</a>, a great online RegExp tester.</p>
+      </div>
+    </div>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/xregexp/2.0.0/xregexp-all-min.js"></script>
+		<script type="text/javascript">
+			$(document).ready(function() {
+				var regexp_exec = function(){
+					var pattern = $('#regex_pattern').val();
+					var data = $('#test_data').val();
+					var mods = [];
+					if ($('#option-g').is(':checked')) {
+						mods.push('g');
+					}
+					if ($('#option-i').is(':checked')) {
+						mods.push('i');
+					}
+					if ($('#option-m').is(':checked')) {
+						mods.push('m');
+					}
+					if ($('#option-x').is(':checked') && $('#regexp_type2').is(':checked')) {
+						mods.push('x');
+					}
+
+					$('.result').hide();
+					$('#result-working').show();
+					if(pattern != '' && data != ''){
+						try {
+							if($('#regexp_type1').is(':checked')){
+								var reg = new RegExp(pattern, mods.join(''));
+							} else {
+								var reg = new XRegExp(pattern, mods.join(''));
+							}
+							var matches = data.match(reg);
+							$('#result-working').hide();
+							if(matches !== null){
+								$('#result-done').show();
+								$('#results').empty();
+								$('#results').append(visualize_result(matches));
+								$('#results').show();
+							} else {
+								$('#result-none').show();
+							}
+						} catch (e) {
+							$('#result-working').hide();
+							$('#result-error').show();
+							$('#results').empty();
+							$('#results').append(visualize_result(e.arguments));
+							$('#results').show();
+							console.log(e);
+						}
+					} else {
+						$('#result-working').hide();
+						$('#result-none').show();
+					}
+				};
+
+				var visualize_result = function(e){
+					switch(typeof(e)){
+						case "number":
+							return e;
+						case "string":
+							return e.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g, '&gt;');
+						case "object":
+							var result = [];
+							result.push('<ul>');
+							for (var name in e) {
+								if (e.hasOwnProperty(name)) {
+									result.push('<li>[' + name + ']: ' + visualize_result(e[name]) + '</li>');
+								}
+							}
+							result.push('</ul>');
+							return result.join('');
+						default:
+							return '';
+					}
+				};
+
+				$('#regex_pattern, #test_data, input').bind('change click keyup', function(){
+					if($('#regexp_type2').is(':checked')){
+						$('#option-x').removeAttr("disabled");
+					} else {
+						$('#option-x').attr("disabled",true);
+					}
+					regexp_exec();
+				});
+
+				// Textarea Resizing is from here http://jsfiddle.net/lerouxb/vRSP2/
+				var resize_textarea = function(e) {
+				    e.style.height = "";
+
+				    var
+				        $e = $(e),            
+				        outerHeight = $e.outerHeight(),
+				        scrollHeight = e.scrollHeight,
+				        innerHeight = $e.innerHeight(),
+				        magic = outerHeight - innerHeight;
+				    e.style.height = scrollHeight + magic + "px";
+				};
+
+				$('#regex_pattern').bind('keydown change click keyup focus', function(){ resize_textarea(regex_pattern); });
+				$(window).bind('resize', function(){ resize_textarea(regex_pattern); });
+			});
+		</script>
+	</body>
+</html>
